@@ -32,5 +32,5 @@ El proyecto consiste en el diseño e implementación de una **Plataforma de Gest
 ├── README.md                          # Información general del proyecto y del estudiante
 └── Primera Entrega/
     ├── Actividad_Exploratoria.md      # Informe de investigación inicial, análisis de mercado y fuentes
-    └── Modelo Entidad Relacion.md     # Modelo E-R (estilo Chen) con entidades, atributos, PK/AK y cardinalidades
+    └── Modelo Entidad Relacion.pdf     # Modelo E-R (estilo Chen) con entidades, atributos, PK/AK y cardinalidades
 ```
