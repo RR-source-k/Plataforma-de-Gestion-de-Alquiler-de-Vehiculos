@@ -1,22 +1,70 @@
-# Tercera Entrega (rehecha): Base de datos en MariaDB + DBeaver
+# 🚗 Plataforma de Gestión de Alquiler de Vehículos
 
-Implementación física del modelo relacional en 3FN de la 2da entrega (**17 relaciones**), lista para correr en MariaDB y administrar con DBeaver.
+Este repositorio contiene la arquitectura, el modelo relacional y la implementación de la base de datos para la **Plataforma de Gestión de Alquiler de Vehículos**, desarrollada como parte del proyecto académico de la carrera de Ingeniería en Ciencias de la Computación e Inteligencia Artificial en la Universidad de Santander (UDES).
 
-> Esta versión **reemplaza** la tercera entrega anterior, que usaba un esquema de 5 tablas (`categorias`, `clientes`, `alquileres`…) que no correspondía al modelo normalizado.
+---
 
-## Archivos
+## 📌 Estructura del Repositorio
 
-| Orden | Archivo | Qué hace |
-|---|---|---|
-| 0 | `00_usuario_dbeaver.sql` | Crea el usuario `alquiler` para conectar DBeaver (una sola vez). |
-| 1 | `01_esquema_ddl.sql` | Borra y crea la base `alquiler_vehiculos`: 17 tablas, 7 triggers, 4 vistas. |
-| 2 | `02_datos_prueba_dml.sql` | Carga datos ficticios (5 sucursales, 10 usuarios, 13 vehículos, 14 reservas…). |
-| 3 | `03_consultas.sql` | 15 consultas de ejemplo y de control de integridad. |
-| 4 | `04_pruebas_restricciones.sql` | 16 sentencias que **deben fallar** (opcional, para demostrar las restricciones). |
+```text
+Plataforma-de-Gestion-de-Alquiler-de-Vehiculos/
+├── Primera Entrega/
+│   ├── Actividad_Exploratoria.md
+│   └── Modelo Entidad Relación.pdf
+├── Segunda entrega/
+│   └── Modelo Relacional/
+│       ├── Informe_Normalizacion.md
+│       ├── Modelo_Relacional.md
+│       └── Normalizacion_Modelo_Relacional.xlsx
+├── Tercera Entrega/
+│   ├── 00_usuario_dbeaver.sql          # Usuario para conectar DBeaver
+│   ├── 01_esquema_ddl.sql              # Creación de la base, tablas, triggers y vistas (DDL)
+│   ├── 02_datos_prueba_dml.sql         # Datos de prueba (DML)
+│   ├── 03_consultas.sql                # Consultas de ejemplo y verificación
+│   ├── 04_pruebas_restricciones.sql    # Pruebas negativas (deben fallar)
+│   └── README.md                       # Guía detallada de la entrega
+└── README.md
+```
 
-## Paso a paso
+---
 
-### 1. Instalar e iniciar MariaDB (CachyOS / Arch)
+## 🛠️ Tecnologías Utilizadas
+
+* **Motor de Base de Datos:** MariaDB
+* **Cliente de Gestión SQL:** DBeaver Community Edition
+* **Entorno de Desarrollo:** CachyOS (Arch Linux)
+* **Lenguaje:** SQL (dialecto MariaDB)
+
+---
+
+## 🗄️ Esquema de la Base de Datos (`alquiler_vehiculos`)
+
+La base de datos implementa el modelo relacional de la 2da entrega, normalizado hasta **3FN / BCNF**, con **17 tablas**:
+
+| Grupo | Tablas |
+|---|---|
+| Sedes y precios | `sucursal`, `tarifa` |
+| Membresías | `membresia`, `membresia_beneficio` |
+| Usuarios | `usuario`, `usuario_telefono`, `usuario_particular`, `usuario_empresarial` |
+| Flota | `vehiculo`, `vehiculo_caracteristica`, `vehiculo_electrico`, `vehiculo_conector` |
+| Operación | `reserva`, `contrato`, `inspeccion`, `inspeccion_dano`, `pago` |
+
+Además incluye:
+
+* **7 triggers** para las reglas que no se expresan solo con llaves: especialización de usuario (particular / empresarial), especialización de vehículo eléctrico, prevención de *overbooking* (reservas solapadas del mismo vehículo) y bloqueo de contratos sobre reservas canceladas.
+* **4 vistas** de apoyo: `v_usuario_detalle`, `v_reserva_detalle`, `v_usuarios_sin_subtipo` y `v_electricos_sin_detalle`.
+
+El modelo gráfico está en [`Modelo_Relacional.md`](Segunda%20entrega/Modelo%20Relacional/Modelo_Relacional.md) y el proceso de normalización en [`Informe_Normalizacion.md`](Segunda%20entrega/Modelo%20Relacional/Informe_Normalizacion.md).
+
+---
+
+## 🚀 Instrucciones de Despliegue e Inicialización
+
+> La guía completa, con la conexión paso a paso en DBeaver y las decisiones de diseño, está en [`Tercera Entrega/README.md`](Tercera%20Entrega/README.md).
+
+### 1. Requisitos Previos
+
+Instalar e iniciar MariaDB en Arch Linux / CachyOS:
 
 ```bash
 sudo pacman -S mariadb
@@ -24,53 +72,40 @@ sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql   #
 sudo systemctl enable --now mariadb
 ```
 
-### 2. Crear el usuario para DBeaver
+### 2. Usuario para DBeaver
 
 Edita la contraseña en `00_usuario_dbeaver.sql` y ejecuta:
 
 ```bash
-sudo mariadb < 00_usuario_dbeaver.sql
+sudo mariadb < "Tercera Entrega/00_usuario_dbeaver.sql"
 ```
 
-(`root` entra por socket y DBeaver no puede usarlo por TCP; por eso el usuario propio.)
+### 3. Creación del Esquema (DDL)
 
-### 3. Conectar DBeaver
+> ⚠️ Este script borra y vuelve a crear la base `alquiler_vehiculos`.
 
-1. **Database → New Database Connection → MariaDB**.
-2. Host `localhost`, puerto `3306`, usuario `alquiler`, la contraseña que pusiste.
-3. Deja **Database** vacío (la crea el script). DBeaver descarga el driver la primera vez: acepta.
-4. **Test Connection → Finish**.
+```bash
+mariadb -u alquiler -p < "Tercera Entrega/01_esquema_ddl.sql"
+```
 
-### 4. Crear la base y cargar los datos
+### 4. Carga de Datos de Prueba (DML)
 
-1. Con la conexión seleccionada: **SQL Editor → Open SQL script** y abre `01_esquema_ddl.sql`.
-2. Ejecútalo con **Execute SQL Script (`Alt+X`)**. No uses `Ctrl+Enter`: ese atajo ejecuta una sola sentencia y los triggers quedarían a medias.
-3. Repite con `02_datos_prueba_dml.sql`.
-4. Pulsa `F5` sobre la conexión para refrescar. Debe aparecer `alquiler_vehiculos` con 17 tablas.
+```bash
+mariadb -u alquiler -p < "Tercera Entrega/02_datos_prueba_dml.sql"
+```
 
-### 5. Ver el diagrama ER
+### 5. Consultas y pruebas (opcional)
 
-Clic derecho sobre la base `alquiler_vehiculos` → **View Diagram**. DBeaver dibuja las 17 tablas y sus llaves foráneas a partir de lo que creó el DDL.
+* `03_consultas.sql`: consultas de ejemplo y control de integridad.
+* `04_pruebas_restricciones.sql`: sentencias que **deben fallar**, para demostrar que las restricciones funcionan.
 
-## Decisiones de diseño
+### Desde DBeaver
 
-- **Nombres:** tablas en minúscula (MariaDB en Linux distingue mayúsculas en tablas) y columnas con los mismos nombres del modelo relacional (`idUsuario`, `fechaInicio`, `precioPorDia`…).
-- **Llaves:** todas las PK, FK y llaves alternas del modelo (`correo`, `documentoIdentidad`, `NIT`, `numeroContrato`) están declaradas. `contrato` usa `idReserva` como PK y FK, por lo que una reserva tiene como máximo un contrato. `inspeccion_dano` tiene FK compuesta hacia `inspeccion`.
-- **Acciones referenciales:** los atributos multivaluados (teléfonos, beneficios, características, conectores, daños) se borran en cascada con su dueño; reservas, contratos y pagos usan `RESTRICT` para no perder historial.
-- **Dominios con `CHECK`:** estados, tipos, métodos de pago, fechas (`fechaFin > fechaInicio`), montos positivos y porcentajes entre 0 y 100.
-- **Reglas que no caben en llaves** (sección 7.3 del informe de normalización), resueltas con triggers:
-  - Un usuario solo puede tener fila en `usuario_particular` o `usuario_empresarial` si su `tipoUsuario` coincide.
-  - Solo los vehículos `ELECTRICO` tienen fila en `vehiculo_electrico`.
-  - Un vehículo no puede tener dos reservas solapadas (evita el *overbooking* que menciona la actividad exploratoria).
-  - No se firma contrato sobre una reserva cancelada.
-- **Especialización total de USUARIO:** SQL no puede exigir que cada usuario *tenga* su fila de subtipo en el mismo `INSERT`. Por eso insertas primero en `usuario` y luego en el subtipo, y las vistas `v_usuarios_sin_subtipo` y `v_electricos_sin_detalle` deben devolver 0 filas.
-- **`idInspeccion`:** forma parte de la PK compuesta `(idReserva, idInspeccion)`; InnoDB no autonumera la segunda columna, así que se asigna a mano (1 = entrega, 2 = devolución en los datos de prueba).
-- **Montos:** pesos colombianos, `DECIMAL(12,2)`. Los pagos de prueba ya traen aplicado el descuento de la membresía.
+Abre cada script en el editor SQL y ejecútalo con **Execute SQL Script (`Alt+X`)**. No uses `Ctrl+Enter` en los scripts 01 y 02, porque solo ejecuta una sentencia y los triggers quedarían a medias.
 
-## Reiniciar desde cero
+---
 
-Volver a ejecutar `01_esquema_ddl.sql` y luego `02_datos_prueba_dml.sql`. El primero borra la base completa, así que no lo corras si ya tienes datos propios que quieras conservar.
+## 👨‍💻 Autor
 
-## Autor
-
-Erick Santiago Rincón Rojas · Código `01251151002` · Universidad de Santander (UDES)
+* **Erick Santiago Rincón Rojas** — Código Estudiantil: `01251151002`  
+  *Universidad de Santander (UDES)*
